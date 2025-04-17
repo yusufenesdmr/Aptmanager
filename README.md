@@ -27,6 +27,8 @@ Bu mobil uygulama, apartman yöneticileri ve sakinleri için geliştirilen bir *
 > Görseller `assets/` klasörüne koyulmalı ve bu şekilde referanslanmalı.
 
 ---
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
 
 ## 🔧 Kurulum
 
