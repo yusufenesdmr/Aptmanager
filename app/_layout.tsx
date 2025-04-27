@@ -41,12 +41,17 @@ export default function RootLayout() {
         <Stack.Screen name="admin/dues/add" options={{ headerShown: false }} />
         <Stack.Screen name="admin/dues/list" options={{ headerShown: false }} />
         <Stack.Screen name="admin/weather" options={{ headerShown: false }} />
+        <Stack.Screen name="admin/complaints/list" options={{ headerShown: false }} />
         <Stack.Screen name="user/login" options={{ headerShown: false }} />
         <Stack.Screen name="user/register" options={{ headerShown: false }} />
         <Stack.Screen name="user/dashboard" options={{ headerShown: false }} />
+        <Stack.Screen name="user/apartment/index" options={{ headerShown: false }} />
+        <Stack.Screen name="user/apartment/edit" options={{ headerShown: false }} />
         <Stack.Screen name="user/apartment/info" options={{ headerShown: false }} />
         <Stack.Screen name="user/dues/payments" options={{ headerShown: false }} />
         <Stack.Screen name="user/announcements/list" options={{ headerShown: false }} />
+        <Stack.Screen name="user/complaints/index" options={{ headerShown: false }} />
+        <Stack.Screen name="user/complaints/add" options={{ headerShown: false }} />
         <Stack.Screen name="user/weather/forecast" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>

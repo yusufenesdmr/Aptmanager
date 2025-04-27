@@ -6,13 +6,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../config/firebase';
 
+interface NewAnnouncement {
+  title: string;
+  content: string;
+  isImportant: boolean;
+}
+
 export default function AddAnnouncement() {
-  const [title, setTitle] = useState<string>('');
-  const [content, setContent] = useState<string>('');
+  const [announcement, setAnnouncement] = useState<NewAnnouncement>({
+    title: '',
+    content: '',
+    isImportant: false,
+  });
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleAddAnnouncement = async (): Promise<void> => {
-    if (!title.trim() || !content.trim()) {
+    if (!announcement.title.trim() || !announcement.content.trim()) {
       Alert.alert('Hata', 'Lütfen başlık ve içerik girin!');
       return;
     }
@@ -32,8 +41,9 @@ export default function AddAnnouncement() {
       console.log('Koleksiyon referansı alındı:', announcementsRef.path);
       
       const newAnnouncement = {
-        title: title.trim(),
-        content: content.trim(),
+        title: announcement.title.trim(),
+        content: announcement.content.trim(),
+        isImportant: announcement.isImportant,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
@@ -100,6 +110,14 @@ export default function AddAnnouncement() {
               <Ionicons name="arrow-back" size={24} color="#4c669f" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Yeni Duyuru Ekle</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleAddAnnouncement}
+              disabled={loading}>
+              <Text style={styles.addButtonText}>
+                {loading ? 'Ekleniyor...' : 'Ekle'}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.content}>
@@ -108,8 +126,8 @@ export default function AddAnnouncement() {
               <TextInput
                 style={styles.input}
                 placeholder="Duyuru başlığı"
-                value={title}
-                onChangeText={setTitle}
+                value={announcement.title}
+                onChangeText={(text) => setAnnouncement({ ...announcement, title: text })}
                 maxLength={100}
               />
 
@@ -117,8 +135,8 @@ export default function AddAnnouncement() {
               <TextInput
                 style={[styles.input, styles.textArea]}
                 placeholder="Duyuru içeriği"
-                value={content}
-                onChangeText={setContent}
+                value={announcement.content}
+                onChangeText={(text) => setAnnouncement({ ...announcement, content: text })}
                 multiline
                 numberOfLines={8}
                 maxLength={1000}
@@ -126,12 +144,14 @@ export default function AddAnnouncement() {
             </View>
 
             <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleAddAnnouncement}
-              disabled={loading}>
-              <Text style={styles.buttonText}>
-                {loading ? 'Ekleniyor...' : 'Duyuru Ekle'}
-              </Text>
+              style={styles.checkboxContainer}
+              onPress={() => setAnnouncement({ ...announcement, isImportant: !announcement.isImportant })}>
+              <View style={[styles.checkbox, announcement.isImportant && styles.checkboxChecked]}>
+                {announcement.isImportant && (
+                  <Ionicons name="checkmark" size={16} color="#fff" />
+                )}
+              </View>
+              <Text style={styles.checkboxLabel}>Önemli Duyuru</Text>
             </TouchableOpacity>
           </ScrollView>
         </LinearGradient>
@@ -153,19 +173,30 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingTop: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
   backButton: {
-    marginRight: 15,
+    padding: 5,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
+  },
+  addButton: {
+    backgroundColor: '#4c669f',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   content: {
     flex: 1,
@@ -193,18 +224,26 @@ const styles = StyleSheet.create({
     height: 200,
     textAlignVertical: 'top',
   },
-  button: {
-    backgroundColor: '#4c669f',
-    padding: 15,
-    borderRadius: 8,
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#4c669f',
+    marginRight: 10,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  checkboxChecked: {
+    backgroundColor: '#4c669f',
   },
-  buttonText: {
-    color: '#fff',
+  checkboxLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    color: '#333',
   },
 }); 

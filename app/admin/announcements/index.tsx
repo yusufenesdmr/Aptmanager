@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert, RefreshContr
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp, Timestamp, getDocs } from 'firebase/firestore';
 import { db } from '../../../config/firebase';
 
 interface Announcement {
@@ -12,6 +12,8 @@ interface Announcement {
   content: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  isImportant: boolean;
+  date: string;
 }
 
 export default function AnnouncementsList() {
@@ -33,29 +35,20 @@ export default function AnnouncementsList() {
         }
 
         const announcementsRef = collection(db, 'announcements');
-        const q = query(announcementsRef, orderBy('createdAt', 'desc'));
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-          const announcementsList: Announcement[] = [];
-          snapshot.forEach((doc) => {
-            announcementsList.push({
-              id: doc.id,
-              ...doc.data()
-            } as Announcement);
-          });
-          console.log('Duyurular başarıyla yüklendi:', announcementsList.length);
-          setAnnouncements(announcementsList);
-          setLoading(false);
-        }, (error) => {
-          console.error('Duyuru dinleme hatası:', error);
-          Alert.alert('Hata', 'Duyurular yüklenirken bir hata oluştu!');
-          setLoading(false);
-        });
-
-        return () => unsubscribe();
+        const q = query(announcementsRef, orderBy('date', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        const announcementsData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Announcement[];
+        
+        console.log('Duyurular başarıyla yüklendi:', announcementsData.length);
+        setAnnouncements(announcementsData);
       } catch (error) {
-        console.error('Duyuru yükleme hatası:', error);
-        Alert.alert('Hata', 'Duyurular yüklenirken bir hata oluştu!');
+        console.error('Duyurular yüklenirken hata oluştu:', error);
+        Alert.alert('Hata', 'Duyurular yüklenirken bir hata oluştu.');
+      } finally {
         setLoading(false);
       }
     };
@@ -65,27 +58,12 @@ export default function AnnouncementsList() {
 
   const handleDelete = async (id: string) => {
     try {
-      Alert.alert(
-        'Duyuruyu Sil',
-        'Bu duyuruyu silmek istediğinizden emin misiniz?',
-        [
-          {
-            text: 'İptal',
-            style: 'cancel'
-          },
-          {
-            text: 'Sil',
-            style: 'destructive',
-            onPress: async () => {
-              await deleteDoc(doc(db, 'announcements', id));
-              Alert.alert('Başarılı', 'Duyuru başarıyla silindi!');
-            }
-          }
-        ]
-      );
+      await deleteDoc(doc(db, 'announcements', id));
+      setAnnouncements(announcements.filter(announcement => announcement.id !== id));
+      Alert.alert('Başarılı', 'Duyuru başarıyla silindi.');
     } catch (error) {
-      console.error('Duyuru silme hatası:', error);
-      Alert.alert('Hata', 'Duyuru silinirken bir hata oluştu!');
+      console.error('Duyuru silinirken hata oluştu:', error);
+      Alert.alert('Hata', 'Duyuru silinirken bir hata oluştu.');
     }
   };
 
@@ -146,7 +124,7 @@ export default function AnnouncementsList() {
       </View>
       <Text style={styles.announcementContent}>{item.content}</Text>
       <Text style={styles.announcementDate}>
-        {item.createdAt?.toDate().toLocaleDateString('tr-TR')}
+        {item.date}
       </Text>
     </View>
   );

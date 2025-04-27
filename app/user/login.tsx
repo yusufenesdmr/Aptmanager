@@ -4,7 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../config/firebase';
+import { auth, db } from '../../config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function UserLogin() {
   const [email, setEmail] = useState('');
@@ -13,9 +14,11 @@ export default function UserLogin() {
   const [firebaseReady, setFirebaseReady] = useState(false);
 
   useEffect(() => {
-    // Firebase'in hazır olduğundan emin ol
     if (auth) {
       setFirebaseReady(true);
+      console.log('Firebase Auth hazır');
+    } else {
+      console.error('Firebase Auth hazır değil');
     }
   }, []);
 
@@ -32,21 +35,56 @@ export default function UserLogin() {
 
     try {
       setLoading(true);
+      console.log('Giriş denemesi başlatılıyor...');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Kullanıcı tipini kontrol et
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      const userData = userDoc.data();
+      
+      console.log('Kullanıcı verisi:', userData); // Debug için
+
+      if (!userDoc.exists()) {
+        await auth.signOut();
+        Alert.alert('Hata', 'Kullanıcı bilgileri bulunamadı!');
+        return;
+      }
+
+      if (userData?.userType !== 'user') {
+        await auth.signOut();
+        Alert.alert('Hata', 'Bu hesap kullanıcı hesabı değil!');
+        return;
+      }
+
       console.log('Giriş başarılı:', userCredential.user);
       router.replace('/user/dashboard');
     } catch (error: any) {
       console.error('Giriş hatası:', error);
       let errorMessage = 'Giriş yapılırken bir hata oluştu!';
       
-      if (error.code === 'auth/invalid-credential') {
-        errorMessage = 'E-posta veya şifre hatalı!';
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = 'Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyin.';
-      } else if (error.code === 'auth/user-not-found') {
-        errorMessage = 'Kullanıcı bulunamadı!';
-      } else if (error.code === 'auth/wrong-password') {
-        errorMessage = 'Hatalı şifre!';
+      if (error.code) {
+        switch (error.code) {
+          case 'auth/invalid-credential':
+            errorMessage = 'E-posta veya şifre hatalı!';
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = 'Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyin.';
+            break;
+          case 'auth/user-not-found':
+            errorMessage = 'Kullanıcı bulunamadı!';
+            break;
+          case 'auth/wrong-password':
+            errorMessage = 'Hatalı şifre!';
+            break;
+          case 'auth/network-request-failed':
+            errorMessage = 'İnternet bağlantısı hatası! Lütfen bağlantınızı kontrol edin.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Geçersiz e-posta adresi!';
+            break;
+          default:
+            errorMessage = `Hata: ${error.message || error.code}`;
+        }
       }
       
       Alert.alert('Hata', errorMessage);

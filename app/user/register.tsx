@@ -3,8 +3,9 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'reac
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { auth, db } from '../config/firebase';
 import { USER_REGISTER_CODE } from '../config/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 export default function UserRegister() {
   const [email, setEmail] = useState('');
@@ -36,7 +37,15 @@ export default function UserRegister() {
 
     try {
       setLoading(true);
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Kullanıcı tipini Firestore'a kaydet
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        email: email,
+        userType: 'user',
+        createdAt: new Date()
+      });
+
       Alert.alert('Başarılı', 'Kullanıcı hesabı oluşturuldu!', [
         { text: 'Tamam', onPress: () => router.replace('/user/login') }
       ]);

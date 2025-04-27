@@ -1,61 +1,101 @@
-# React Native
-
-# Node.js
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# macOS
+# OSX
 .DS_Store
 
-# Environment files
-.env
-.env.*.local
-
-# Expo
-.expo/
-.expo-shared/
-dist/
-web-build/
-expo-env.d.ts
-
-# iOS
-ios/Pods/
-ios/*.xcworkspace
-ios/build/
-*.xcodeproj/*
+# Xcode
+build/
 *.pbxuser
 !default.pbxuser
 *.mode1v3
+!default.mode1v3
 *.mode2v3
+!default.mode2v3
 *.perspectivev3
-xcuserdata/
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
 *.xcuserstate
-*.xcuserdatad
+project.xcworkspace
 
-# Android
-android/.gradle/
-android/app/build/
-android/build/
+# Android/IntelliJ
+build/
+.idea
+.gradle
+local.properties
+*.iml
+*.hprof
+.cxx/
 *.keystore
+!debug.keystore
+
+# node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Local env files
+.env*.local
+.env
+
+# typescript
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+coverage/
+
+# Production
+/build
+/dist
+
+# Misc
+*.log
+*.swp
+*.swo
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# React Native
 *.jks
 *.p8
 *.p12
 *.key
-
-# Metro
-.metro-cache/
-.metro-health-check/
-
-# TypeScript
-*.tsbuildinfo
-
-# Misc
-*.orig.*
-*.log
-*.pem
 *.mobileprovision
+*.orig.*
+web-build/
 
-# Example files
-app-example
+# macOS
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
