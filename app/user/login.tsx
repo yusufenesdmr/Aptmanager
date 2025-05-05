@@ -142,6 +142,12 @@ export default function UserLogin() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            style={[styles.registerButton, { backgroundColor: '#f0f0f0' }]}
+            onPress={() => router.push('/user/forgot-password' as any)}>
+            <Text style={[styles.registerButtonText, { color: '#4c669f' }]}>Şifremi Unuttum</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}>
             <Text style={[styles.backButtonText, { color: '#4c669f' }]}>Geri Dön</Text>
