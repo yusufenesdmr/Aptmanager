@@ -1,99 +1,141 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import * as React from 'react';
+import { useState } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { collection, getDocs, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
+import { db } from '../../../config/firebase';
+import { Button } from '@/components/ui/Button';
+import { theme } from '@/constants/theme';
 
 export default function AddDues() {
-  const [apartmentNo, setApartmentNo] = useState('');
   const [amount, setAmount] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
-  const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [dueDate, setDueDate] = useState('');
 
-  const handleAdd = () => {
-    if (!apartmentNo || !amount || !month || !year) {
-      Alert.alert('Hata', 'Lütfen zorunlu alanları doldurun!');
+  const handleAdd = async () => {
+    if (!amount || !month || !year) {
+      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
       return;
     }
 
-    // Burada API'ye gönderme işlemi yapılacak
-    Alert.alert('Başarılı', 'Aidat başarıyla eklendi!');
-    router.back();
+    setLoading(true);
+    try {
+      const duesRef = collection(db, 'dues');
+      const apartmentsRef = collection(db, 'apartments');
+      const apartmentsSnapshot = await getDocs(apartmentsRef);
+      const apartments = apartmentsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as { id: string; no: string }[];
+
+      if (apartments.length === 0) {
+        Alert.alert('Hata', 'Hiç daire bulunamadı!');
+        return;
+      }
+
+      // Genel aidat kaydı oluştur
+      const generalDue = {
+        amount: parseFloat(amount),
+        month,
+        year,
+        status: 'Beklemede',
+        apartmentId: 'all',
+        createdAt: new Date(),
+        dueDate: new Date(dueDate) // Son ödeme tarihi
+      };
+      await addDoc(duesRef, generalDue);
+
+      // Her daire için ayrı aidat kaydı oluştur
+      const duesPromises = apartments.map(apartment => {
+        if (!apartment.no) {
+          console.warn(`Daire ID ${apartment.id} için numara bulunamadı`);
+          return null;
+        }
+        return addDoc(duesRef, {
+          amount: parseFloat(amount),
+          month,
+          year,
+          status: 'Beklemede',
+          apartmentId: apartment.id,
+          apartmentNo: apartment.no,
+          createdAt: new Date(),
+          dueDate: new Date(dueDate) // Son ödeme tarihi
+        });
+      }).filter(Boolean);
+
+      await Promise.all(duesPromises);
+      Alert.alert('Başarılı', 'Aidat başarıyla eklendi.');
+      router.back();
+    } catch (error) {
+      console.error('Aidat eklenirken hata oluştu:', error);
+      Alert.alert('Hata', 'Aidat eklenirken bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#4c669f', '#3b5998', '#192f6a']}
+        colors={[theme.colors.primary, theme.colors.secondary]}
         style={styles.gradient}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Aidat Ekle</Text>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>Geri Dön</Text>
+            <Text style={styles.backButtonText}>Geri</Text>
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>Aidat Ekle</Text>
+          <View style={styles.headerRight} />
         </View>
 
-        <ScrollView style={styles.content}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Daire No</Text>
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.formContainer}>
+            <Text style={styles.label}>Tüm Daireler İçin Aidat</Text>
             <TextInput
               style={styles.input}
-              placeholder="Daire No"
-              placeholderTextColor="#999"
-              value={apartmentNo}
-              onChangeText={setApartmentNo}
+              placeholder="Aidat Tutarı (TL)"
+              placeholderTextColor="rgba(0, 0, 0, 0.5)"
               keyboardType="numeric"
-            />
-
-            <Text style={styles.label}>Tutar</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Tutar"
-              placeholderTextColor="#999"
               value={amount}
               onChangeText={setAmount}
-              keyboardType="numeric"
             />
-
-            <Text style={styles.label}>Ay</Text>
             <TextInput
               style={styles.input}
-              placeholder="Ay"
-              placeholderTextColor="#999"
+              placeholder="Ay (1-12)"
+              placeholderTextColor="rgba(0, 0, 0, 0.5)"
+              keyboardType="numeric"
               value={month}
               onChangeText={setMonth}
-              keyboardType="numeric"
             />
-
-            <Text style={styles.label}>Yıl</Text>
             <TextInput
               style={styles.input}
               placeholder="Yıl"
-              placeholderTextColor="#999"
+              placeholderTextColor="rgba(0, 0, 0, 0.5)"
+              keyboardType="numeric"
               value={year}
               onChangeText={setYear}
-              keyboardType="numeric"
             />
-
-            <Text style={styles.label}>Açıklama</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Açıklama"
-              placeholderTextColor="#999"
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              numberOfLines={4}
+              style={styles.input}
+              placeholder="Son Ödeme Tarihi (YYYY-MM-DD)"
+              placeholderTextColor="rgba(0, 0, 0, 0.5)"
+              value={dueDate}
+              onChangeText={setDueDate}
+            />
+            <Button
+              title={loading ? 'Ekleniyor...' : 'Aidat Ekle'}
+              variant="primary"
+              size="large"
+              fullWidth
+              onPress={handleAdd}
+              loading={loading}
+              style={styles.addButton}
             />
           </View>
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleAdd}>
-            <Text style={styles.buttonText}>Aidat Ekle</Text>
-          </TouchableOpacity>
         </ScrollView>
       </LinearGradient>
     </View>
@@ -103,65 +145,98 @@ export default function AddDues() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.colors.background.light,
   },
   gradient: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: 50,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  backButton: {
-    padding: 10,
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 16,
-    textDecorationLine: 'underline',
-  },
   content: {
-    flex: 1,
-    padding: 20,
+    alignItems: 'center',
+    padding: 24,
+    paddingBottom: 40,
   },
-  inputContainer: {
-    gap: 10,
-    marginBottom: 20,
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  logoWrapper: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.soft,
+    marginBottom: 8,
+  },
+  logoImage: {
+    width: 100,
+    height: 100,
+  },
+  formContainer: {
+    width: '100%',
+    maxWidth: 400,
+    gap: 12,
+    backgroundColor: theme.colors.background.light,
+    borderRadius: 16,
+    padding: 24,
+    ...theme.shadows.sm,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: theme.colors.text.light,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   label: {
-    color: 'white',
+    color: '#000',
     fontSize: 16,
-    marginBottom: 5,
+    marginBottom: 2,
+    marginTop: 8,
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: '#fff',
     padding: 15,
     borderRadius: 10,
     fontSize: 16,
-    marginBottom: 15,
+    marginBottom: 4,
+    color: '#000',
+    borderWidth: 1,
+    borderColor: theme.colors.gray[200],
   },
   textArea: {
-    height: 100,
+    height: 80,
     textAlignVertical: 'top',
   },
-  button: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+  saveButton: {
+    marginTop: 8,
   },
-  buttonText: {
-    color: 'white',
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  backButton: {
+    padding: 8,
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.text.light,
+  },
+  headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
+    color: theme.colors.text.light,
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerRight: {
+    width: 24,
+    height: 24,
+  },
+  addButton: {
+    marginTop: 16,
   },
 }); 

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, SafeAreaView, ActivityIndicator, Image } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../config/firebase';
+import { Button } from '@/components/ui/Button';
+import { theme } from '@/constants/theme';
 
 interface NewAnnouncement {
   title: string;
@@ -28,30 +30,22 @@ export default function AddAnnouncement() {
 
     try {
       setLoading(true);
-      console.log('Duyuru ekleme işlemi başlatılıyor...');
-      console.log('Firebase bağlantısı kontrol ediliyor...');
       
       if (!db) {
         console.error('Firestore bağlantısı bulunamadı!');
         throw new Error('Firestore bağlantısı bulunamadı!');
       }
 
-      console.log('Firestore bağlantısı başarılı');
       const announcementsRef = collection(db, 'announcements');
-      console.log('Koleksiyon referansı alındı:', announcementsRef.path);
       
       const newAnnouncement = {
         title: announcement.title.trim(),
         content: announcement.content.trim(),
         isImportant: announcement.isImportant,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        date: serverTimestamp()
       };
-      console.log('Eklenecek duyuru verisi:', newAnnouncement);
 
-      console.log('Firestore\'a yazma işlemi başlatılıyor...');
-      const docRef = await addDoc(announcementsRef, newAnnouncement);
-      console.log('Duyuru başarıyla eklendi. Belge ID:', docRef.id);
+      await addDoc(announcementsRef, newAnnouncement);
       
       Alert.alert(
         'Başarılı',
@@ -60,7 +54,6 @@ export default function AddAnnouncement() {
           {
             text: 'Tamam',
             onPress: () => {
-              console.log('Kullanıcı ana sayfaya yönlendiriliyor...');
               router.back();
             }
           }
@@ -101,31 +94,21 @@ export default function AddAnnouncement() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <LinearGradient
-          colors={['#ffffff', '#f5f5f5', '#f0f0f0']}
+          colors={[theme.colors.primary, theme.colors.secondary]}
           style={styles.gradient}>
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color="#4c669f" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Yeni Duyuru Ekle</Text>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={handleAddAnnouncement}
-              disabled={loading}>
-              <Text style={styles.addButtonText}>
-                {loading ? 'Ekleniyor...' : 'Ekle'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.content}>
-            <View style={styles.inputContainer}>
+          <ScrollView contentContainerStyle={styles.content}>
+            <View style={styles.logoContainer}>
+              <View style={styles.logoWrapper}>
+                <Image source={require('../../../assets/images/logo1.jpg')} style={styles.logoImage} resizeMode="cover" />
+              </View>
+            </View>
+            <View style={styles.formContainer}>
+              <Text style={styles.title}>Yeni Duyuru Ekle</Text>
               <Text style={styles.label}>Başlık</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Duyuru başlığı"
+                placeholderTextColor={theme.colors.gray[400]}
                 value={announcement.title}
                 onChangeText={(text) => setAnnouncement({ ...announcement, title: text })}
                 maxLength={100}
@@ -135,24 +118,43 @@ export default function AddAnnouncement() {
               <TextInput
                 style={[styles.input, styles.textArea]}
                 placeholder="Duyuru içeriği"
+                placeholderTextColor={theme.colors.gray[400]}
                 value={announcement.content}
                 onChangeText={(text) => setAnnouncement({ ...announcement, content: text })}
                 multiline
                 numberOfLines={8}
                 maxLength={1000}
               />
-            </View>
 
-            <TouchableOpacity
-              style={styles.checkboxContainer}
-              onPress={() => setAnnouncement({ ...announcement, isImportant: !announcement.isImportant })}>
-              <View style={[styles.checkbox, announcement.isImportant && styles.checkboxChecked]}>
-                {announcement.isImportant && (
-                  <Ionicons name="checkmark" size={16} color="#fff" />
-                )}
-              </View>
-              <Text style={styles.checkboxLabel}>Önemli Duyuru</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.checkboxContainer}
+                onPress={() => setAnnouncement({ ...announcement, isImportant: !announcement.isImportant })}>
+                <View style={[styles.checkbox, announcement.isImportant && styles.checkboxChecked]}>
+                  {announcement.isImportant && (
+                    <Ionicons name="checkmark" size={16} color={theme.colors.background.light} />
+                  )}
+                </View>
+                <Text style={styles.checkboxLabel}>Önemli Duyuru</Text>
+              </TouchableOpacity>
+
+              <Button
+                title={loading ? 'Ekleniyor...' : 'Duyuru Ekle'}
+                variant="primary"
+                size="large"
+                fullWidth
+                onPress={handleAddAnnouncement}
+                loading={loading}
+                style={styles.saveButton}
+              />
+               <Button
+                title="İptal"
+                variant="outline"
+                size="large"
+                fullWidth
+                onPress={() => router.back()}
+                style={styles.saveButton}
+              />
+            </View>
           </ScrollView>
         </LinearGradient>
       </View>
@@ -163,7 +165,7 @@ export default function AddAnnouncement() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.background.light,
   },
   container: {
     flex: 1,
@@ -171,79 +173,91 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  backButton: {
-    padding: 5,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  addButton: {
-    backgroundColor: '#4c669f',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   content: {
-    flex: 1,
-    padding: 20,
+    alignItems: 'center',
+    padding: 24,
+    paddingBottom: 40,
   },
-  inputContainer: {
-    marginBottom: 20,
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  logoWrapper: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.soft,
+    marginBottom: 8,
+  },
+  logoImage: {
+    width: 100,
+    height: 100,
+  },
+  formContainer: {
+    width: '100%',
+    maxWidth: 400,
+    gap: 12,
+    backgroundColor: theme.colors.background.light,
+    borderRadius: 16,
+    padding: 24,
+    ...theme.shadows.sm,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: theme.colors.text.light,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   label: {
+    color: theme.colors.text.light,
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#333',
+    marginBottom: 2,
+    marginTop: 8,
   },
   input: {
-    backgroundColor: '#f8f8f8',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    backgroundColor: theme.colors.background.soft,
     padding: 15,
+    borderRadius: 10,
     fontSize: 16,
-    marginBottom: 20,
+    marginBottom: 4,
+    color: theme.colors.text.light,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[200],
   },
   textArea: {
-    height: 200,
+    height: 120,
     textAlignVertical: 'top',
   },
-  checkboxContainer: {
+   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
+    marginBottom: 20,
   },
   checkbox: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#4c669f',
+    borderColor: theme.colors.primary,
     marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: theme.colors.background.soft,
   },
   checkboxChecked: {
-    backgroundColor: '#4c669f',
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   checkboxLabel: {
     fontSize: 16,
-    color: '#333',
+    color: theme.colors.text.light,
+  },
+  saveButton: {
+    marginTop: 8,
   },
 }); 

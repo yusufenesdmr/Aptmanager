@@ -1,101 +1,105 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
+import { StyleSheet, View, StatusBar, ViewStyle, TextStyle, Image, ImageStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { Button } from '@/components/ui/Button';
+import { theme } from '@/constants/theme';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { HelloWave } from '@/components/HelloWave';
 
-interface Props {}
-
-const App: React.FC<Props> = () => {
+const App: React.FC = () => {
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={['#4c669f', '#3b5998', '#192f6a']}
+        colors={[theme.colors.primary, theme.colors.secondary]}
         style={styles.gradient}>
         <View style={styles.content}>
           <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>🏢</Text>
-            <Text style={styles.title}>Apartman Yönetim Sistemi</Text>
-            <Text style={styles.subtitle}>Hoş Geldiniz</Text>
+            <View style={styles.logoWrapper}>
+              <Image source={require('../assets/images/logo1.jpg')} style={styles.logoImage} resizeMode="cover" />
+            </View>
           </View>
           
           <View style={styles.buttonContainer}>
-            <TouchableOpacity
+            <Button
+              title="👤 Yönetici Girişi"
+              variant="primary"
+              size="large"
+              fullWidth
+              onPress={() => router.push('/admin/login')}
               style={styles.button}
-              onPress={() => router.push('/admin/login')}>
-              <Text style={styles.buttonText}>👤 Yönetici Girişi</Text>
-            </TouchableOpacity>
+            />
             
-            <TouchableOpacity
+            <Button
+              title="👥 Kullanıcı Girişi"
+              variant="secondary"
+              size="large"
+              fullWidth
+              onPress={() => router.push('/user/login')}
               style={styles.button}
-              onPress={() => router.push('/user/login')}>
-              <Text style={styles.buttonText}>👥 Kullanıcı Girişi</Text>
-            </TouchableOpacity>
+            />
           </View>
         </View>
       </LinearGradient>
-    </View>
+    </ThemedView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
+  } as ViewStyle,
   gradient: {
     flex: 1,
-  },
+  } as ViewStyle,
   content: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
-  },
+    padding: theme.spacing.xl,
+  } as ViewStyle,
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 50,
-  },
-  logoText: {
-    fontSize: 80,
-    marginBottom: 20,
-  },
+    marginBottom: theme.spacing.xxl,
+  } as ViewStyle,
+  logoWrapper: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+    backgroundColor: theme.colors.background.soft,
+  } as ViewStyle,
+  logoImage: {
+    width: 160,
+    height: 160,
+  } as ImageStyle,
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: 'white',
+    ...theme.typography.h1,
+    color: theme.colors.background.light,
     textAlign: 'center',
-    marginBottom: 10,
-  },
+    marginBottom: theme.spacing.md,
+  } as TextStyle,
+  welcomeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  } as ViewStyle,
   subtitle: {
-    fontSize: 18,
-    color: '#E0E0E0',
-    marginBottom: 20,
-  },
+    ...theme.typography.h3,
+    color: theme.colors.background.light,
+  } as TextStyle,
   buttonContainer: {
     width: '100%',
-    gap: 20,
-  },
+    gap: theme.spacing.md,
+  } as ViewStyle,
   button: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    padding: 18,
-    borderRadius: 15,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '600',
-  },
+    ...theme.shadows.md,
+  } as ViewStyle,
 });
 
 export default App; 

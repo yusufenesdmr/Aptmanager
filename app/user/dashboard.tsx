@@ -1,8 +1,10 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import * as React from 'react';
+import { StyleSheet, View, Image, ImageStyle, ViewStyle, TouchableOpacity, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Button } from '@/components/ui/Button';
+import { theme } from '@/constants/theme';
 
 export default function UserDashboard() {
   const handleNavigation = (path: string) => {
@@ -12,89 +14,70 @@ export default function UserDashboard() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#ffffff', '#f5f5f5', '#f0f0f0']}
+        colors={[theme.colors.primary, theme.colors.secondary]}
         style={styles.gradient}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Kullanıcı Paneli</Text>
-          <View style={styles.headerButtons}>
-            <TouchableOpacity
-              style={styles.notificationButton}
-              onPress={() => handleNavigation('/user/announcements/list')}>
-              <Ionicons name="notifications-outline" size={24} color="#4c669f" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.logoutButton}
-              onPress={() => router.replace('/')}>
-              <Ionicons name="log-out-outline" size={24} color="#4c669f" />
-            </TouchableOpacity>
+        <View style={styles.content}>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoWrapper}>
+              <Image source={require('../../assets/images/logo1.jpg')} style={styles.logoImage} resizeMode="cover" />
+            </View>
+          </View>
+          
+          <View style={styles.row}>
+            <Button
+              title="🏢 Daire Bilgileri"
+              variant="primary"
+              size="large"
+              fullWidth
+              onPress={() => handleNavigation('/user/apartment/info')}
+              style={styles.gridButton}
+            />
+            <Button
+              title="💸 Aidat Ödemeleri"
+              variant="secondary"
+              size="large"
+              fullWidth
+              onPress={() => handleNavigation('/user/dues/payments')}
+              style={styles.gridButton}
+            />
+          </View>
+          <View style={styles.row}>
+            <Button
+              title="⚠️ Şikayetler"
+              variant="primary"
+              size="large"
+              fullWidth
+              onPress={() => handleNavigation('/user/complaints')}
+              style={styles.gridButton}
+            />
+            <Button
+              title="💬 Mesajlar"
+              variant="secondary"
+              size="large"
+              fullWidth
+              onPress={() => handleNavigation('/user/chat')}
+              style={styles.gridButton}
+            />
+          </View>
+          <View style={styles.row}>
+            <Button
+              title="📢 Duyurular"
+              variant="primary"
+              size="large"
+              fullWidth
+              onPress={() => handleNavigation('/user/announcements/list')}
+              style={styles.gridButton}
+            />
+            <Button
+              title="☁️ Hava Durumu"
+              variant="secondary"
+              size="large"
+              fullWidth
+              onPress={() => handleNavigation('/user/weather/forecast')}
+              style={styles.gridButton}
+            />
           </View>
         </View>
-
-        <ScrollView style={styles.content}>
-          <View style={styles.gridContainer}>
-            {/* Ana Butonlar */}
-            <View style={styles.mainButtonsContainer}>
-              <TouchableOpacity
-                style={styles.mainButton}
-                onPress={() => handleNavigation('/user/apartment/info')}>
-                <Ionicons name="home-outline" size={32} color="#fff" />
-                <Text style={styles.mainButtonText}>Daire Bilgileri</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.mainButton}
-                onPress={() => handleNavigation('/user/dues/payments')}>
-                <Ionicons name="cash-outline" size={32} color="#fff" />
-                <Text style={styles.mainButtonText}>Aidat Ödemeleri</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.mainButton}
-                onPress={() => handleNavigation('/user/weather/forecast')}>
-                <Ionicons name="cloud-outline" size={32} color="#fff" />
-                <Text style={styles.mainButtonText}>Hava Durumu</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.mainButton}
-                onPress={() => handleNavigation('/user/complaints')}>
-                <Ionicons name="alert-circle-outline" size={32} color="#fff" />
-                <Text style={styles.mainButtonText}>Şikayetlerim</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.mainButton}
-                onPress={() => handleNavigation('/user/help')}>
-                <Ionicons name="help-circle-outline" size={32} color="#fff" />
-                <Text style={styles.mainButtonText}>Yardım Merkezi</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Alt Sekmeler */}
-            <View style={styles.subButtonsContainer}>
-              <TouchableOpacity
-                style={styles.subButton}
-                onPress={() => handleNavigation('/user/announcements/list')}>
-                <Ionicons name="megaphone-outline" size={24} color="#4c669f" />
-                <Text style={styles.subButtonText}>Duyurular</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.subButton}
-                onPress={() => handleNavigation('/user/visitors/list')}>
-                <Ionicons name="people-outline" size={24} color="#4c669f" />
-                <Text style={styles.subButtonText}>Ziyaretçiler</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.subButton}
-                onPress={() => handleNavigation('/user/settings')}>
-                <Ionicons name="settings-outline" size={24} color="#4c669f" />
-                <Text style={styles.subButtonText}>Ayarlar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
       </LinearGradient>
     </View>
   );
@@ -107,96 +90,58 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  headerButtons: {
-    flexDirection: 'row',
-    gap: 15,
-  },
-  notificationButton: {
-    padding: 10,
-  },
-  logoutButton: {
-    padding: 10,
-  },
   content: {
     flex: 1,
-    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
   },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  logoWrapper: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.soft,
+    marginBottom: 8,
+  } as ViewStyle,
+  logoImage: {
+    width: 120,
+    height: 120,
+  } as ImageStyle,
   gridContainer: {
-    gap: 20,
+    width: '100%',
+    maxWidth: 400,
+    gap: 16,
   },
-  mainButtonsContainer: {
+  row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 15,
+    gap: 16,
+    marginBottom: 16,
   },
-  mainButton: {
-    width: '48%',
-    aspectRatio: 1,
-    backgroundColor: '#4c669f',
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 15,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+  gridButton: {
+    flex: 1,
+    marginHorizontal: 0,
   },
-  mainButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 10,
-    textAlign: 'center',
-  },
-  subButtonsContainer: {
+  menuItem: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 15,
-  },
-  subButton: {
-    width: '48%',
-    aspectRatio: 1,
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    justifyContent: 'center',
     alignItems: 'center',
-    padding: 15,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 3,
+    borderColor: '#ccc',
+    borderRadius: 8,
   },
-  subButtonText: {
-    color: '#4c669f',
-    fontSize: 14,
-    fontWeight: '600',
-    marginTop: 10,
-    textAlign: 'center',
+  menuIcon: {
+    marginRight: 12,
+  },
+  menuText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 }); 

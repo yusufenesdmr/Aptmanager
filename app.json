@@ -36,11 +36,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "firebase": {
-        "passwordResetUrl": "myapp://reset-password"
-      }
     }
   }
 }

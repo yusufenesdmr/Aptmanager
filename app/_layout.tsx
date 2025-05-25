@@ -29,30 +29,32 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="admin/login" options={{ headerShown: false }} />
-        <Stack.Screen name="admin/register" options={{ headerShown: false }} />
-        <Stack.Screen name="admin/dashboard" options={{ headerShown: false }} />
-        <Stack.Screen name="admin/apartment/add" options={{ headerShown: false }} />
-        <Stack.Screen name="admin/apartment/list" options={{ headerShown: false }} />
-        <Stack.Screen name="admin/user/add" options={{ headerShown: false }} />
-        <Stack.Screen name="admin/user/list" options={{ headerShown: false }} />
-        <Stack.Screen name="admin/dues/add" options={{ headerShown: false }} />
-        <Stack.Screen name="admin/dues/list" options={{ headerShown: false }} />
-        <Stack.Screen name="admin/weather" options={{ headerShown: false }} />
-        <Stack.Screen name="admin/complaints/list" options={{ headerShown: false }} />
-        <Stack.Screen name="user/login" options={{ headerShown: false }} />
-        <Stack.Screen name="user/register" options={{ headerShown: false }} />
-        <Stack.Screen name="user/dashboard" options={{ headerShown: false }} />
-        <Stack.Screen name="user/apartment/index" options={{ headerShown: false }} />
-        <Stack.Screen name="user/apartment/edit" options={{ headerShown: false }} />
-        <Stack.Screen name="user/apartment/info" options={{ headerShown: false }} />
-        <Stack.Screen name="user/dues/payments" options={{ headerShown: false }} />
-        <Stack.Screen name="user/announcements/list" options={{ headerShown: false }} />
-        <Stack.Screen name="user/complaints/index" options={{ headerShown: false }} />
-        <Stack.Screen name="user/complaints/add" options={{ headerShown: false }} />
-        <Stack.Screen name="user/weather/forecast" options={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="admin" />
+        <Stack.Screen name="user" />
+        <Stack.Screen name="admin/login" />
+        <Stack.Screen name="admin/register" />
+        <Stack.Screen name="admin/dashboard" />
+        <Stack.Screen name="admin/apartment/add" />
+        <Stack.Screen name="admin/apartment/list" />
+        <Stack.Screen name="admin/user/add" />
+        <Stack.Screen name="admin/user/list" />
+        <Stack.Screen name="admin/dues/add" />
+        <Stack.Screen name="admin/dues/list" />
+        <Stack.Screen name="admin/weather" />
+        <Stack.Screen name="admin/complaints/list" />
+        <Stack.Screen name="user/login" />
+        <Stack.Screen name="user/register" />
+        <Stack.Screen name="user/dashboard" />
+        <Stack.Screen name="user/apartment/index" />
+        <Stack.Screen name="user/apartment/edit" />
+        <Stack.Screen name="user/apartment/info" />
+        <Stack.Screen name="user/dues/payments" />
+        <Stack.Screen name="user/announcements/list" />
+        <Stack.Screen name="user/complaints/index" />
+        <Stack.Screen name="user/complaints/add" />
+        <Stack.Screen name="user/weather/forecast" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

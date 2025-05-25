@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ana Bina -->
+  <rect x="30" y="40" width="60" height="60" rx="8" fill="#4A90E2"/>
+  
+  <!-- Pencere 1 -->
+  <rect x="40" y="50" width="15" height="15" rx="2" fill="white"/>
+  
+  <!-- Pencere 2 -->
+  <rect x="65" y="50" width="15" height="15" rx="2" fill="white"/>
+  
+  <!-- Pencere 3 -->
+  <rect x="40" y="75" width="15" height="15" rx="2" fill="white"/>
+  
+  <!-- Pencere 4 -->
+  <rect x="65" y="75" width="15" height="15" rx="2" fill="white"/>
+  
+  <!-- Kapı -->
+  <rect x="52" y="80" width="16" height="20" rx="2" fill="#50E3C2"/>
+  
+  <!-- Çatı -->
+  <path d="M20 40L60 20L100 40" stroke="#F5A623" stroke-width="4"/>
+</svg> 
