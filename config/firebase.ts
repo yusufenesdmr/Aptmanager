@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
@@ -12,11 +12,14 @@ const firebaseConfig = {
   measurementId: "G-27LBC18KNM"
 };
 
-// Firebase uygulamasını başlat
-const app = initializeApp(firebaseConfig);
+// Firebase uygulamasını başlat (eğer zaten başlatılmamışsa)
+let app;
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
+}
 
 // Auth servisini al ve dışa aktar
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-export { auth, db }; 
+export const auth = getAuth(app);
+export const db = getFirestore(app); 

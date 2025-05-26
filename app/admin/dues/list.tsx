@@ -52,17 +52,17 @@ export default function DuesList() {
               return dueDate >= now; // Sadece vadesi gelmemiş aidatları göster
             });
 
-            // Benzersiz daire ID'lerini topla
+          // Benzersiz daire ID'lerini topla
             const apartmentIds = Array.from(new Set(activeDues.map((due: Dues) => due.apartmentId).filter(Boolean)));
 
-            if (apartmentIds.length > 0) {
-              const qApartments = query(collection(db, 'apartments'), where('__name__', 'in', apartmentIds));
-              const apartmentsSnapshot = await getDocs(qApartments);
-              const apartmentsData: any = {};
-              apartmentsSnapshot.docs.forEach(doc => {
-                apartmentsData[doc.id] = doc.data();
-              });
-              setApartments(apartmentsData);
+          if (apartmentIds.length > 0) {
+            const qApartments = query(collection(db, 'apartments'), where('__name__', 'in', apartmentIds));
+            const apartmentsSnapshot = await getDocs(qApartments);
+            const apartmentsData: any = {};
+            apartmentsSnapshot.docs.forEach(doc => {
+              apartmentsData[doc.id] = doc.data();
+            });
+            setApartments(apartmentsData);
 
               // Boş bilgileri olan daireleri filtrele ve e-posta bilgisini ekle
               const validDues = activeDues.filter(due => {
@@ -81,8 +81,8 @@ export default function DuesList() {
               });
               
               setDues(validDues);
-            } else {
-              setApartments({});
+          } else {
+            setApartments({});
               setDues([]);
             }
           } catch (error) {
@@ -93,8 +93,8 @@ export default function DuesList() {
           }
         }, (error) => {
           console.error("Aidatlar çekilirken hata oluştu:", error);
-          setLoading(false);
-          Alert.alert('Hata', 'Veriler yüklenirken bir sorun oluştu.');
+           setLoading(false);
+           Alert.alert('Hata', 'Veriler yüklenirken bir sorun oluştu.');
         });
 
         return () => unsubscribeDues();

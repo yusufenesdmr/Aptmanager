@@ -4,14 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
-type AdminRoute = '/admin/chat' | '/admin/apartments' | '/admin/users' | '/admin/announcements' | '/admin/weather';
+type UserRoute = '/user/chat' | '/user/complaints' | '/user/dues' | '/user/announcements' | '/user/weather';
 
 interface MenuItem {
   title: string;
   description: string;
   icon: string;
   color: string;
-  route: AdminRoute;
+  route: UserRoute;
 }
 
 const styles = StyleSheet.create({
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const AdminIndex: React.FC = () => {
+const UserIndex: React.FC = () => {
   const router = useRouter();
 
   const menuItems: MenuItem[] = [
@@ -102,28 +102,28 @@ const AdminIndex: React.FC = () => {
       description: 'Günlük hava durumu',
       icon: 'partly-sunny',
       color: '#FFC107',
-      route: '/admin/weather',
+      route: '/user/weather',
     },
     {
-      title: 'Daireler',
-      description: 'Daire yönetimi',
-      icon: 'home',
-      color: '#2196F3',
-      route: '/admin/apartments',
+      title: 'Şikayetler',
+      description: 'Şikayet bildirimi',
+      icon: 'alert-circle',
+      color: '#F44336',
+      route: '/user/complaints',
     },
     {
-      title: 'Kullanıcılar',
-      description: 'Kullanıcı yönetimi',
-      icon: 'people',
-      color: '#FF9800',
-      route: '/admin/users',
+      title: 'Aidat',
+      description: 'Aidat ödemeleri',
+      icon: 'cash',
+      color: '#4CAF50',
+      route: '/user/dues',
     },
     {
       title: 'Duyurular',
-      description: 'Duyuru yönetimi',
+      description: 'Site duyuruları',
       icon: 'megaphone',
       color: '#9C27B0',
-      route: '/admin/announcements',
+      route: '/user/announcements',
     },
   ];
 
@@ -137,10 +137,10 @@ const AdminIndex: React.FC = () => {
           colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.95)']}
           style={styles.gradient}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Yönetici Paneli</Text>
+            <Text style={styles.headerTitle}>Kullanıcı Paneli</Text>
             <TouchableOpacity
               style={styles.messageButton}
-              onPress={() => router.push('/admin/chat')}>
+              onPress={() => router.push('/user/chat')}>
               <Ionicons name="chatbubbles" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -167,4 +167,4 @@ const AdminIndex: React.FC = () => {
   );
 };
 
-export default AdminIndex; 
+export default UserIndex; 

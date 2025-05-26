@@ -201,8 +201,8 @@ export default function DuesPayments() {
                     <Text style={[styles.statusText, { color: getStatusColor(due.status) }]}>
                       {due.status}
                     </Text>
-                  </View>
-                </View>
+            </View>
+              </View>
                 <View style={styles.duesDetails}>
                   <Text style={styles.duesAmount}>{formatCurrency(due.amount)}</Text>
                   <Text style={styles.duesDate}>
@@ -220,7 +220,7 @@ export default function DuesPayments() {
                       <Text style={styles.payButtonText}>Öde</Text>
                     </TouchableOpacity>
                   )}
-                </View>
+            </View>
               </View>
             ))}
           </View>

@@ -16,13 +16,34 @@ export default function UserDashboard() {
       <LinearGradient
         colors={[theme.colors.primary, theme.colors.secondary]}
         style={styles.gradient}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.weatherIcon}
+            onPress={() => handleNavigation('/user/weather/forecast')}>
+            <Ionicons name="partly-sunny" size={24} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.headerPlaceholder} />
+          <View style={styles.headerIcons}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => handleNavigation('/user/chat')}>
+              <Ionicons name="chatbubbles" size={24} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => handleNavigation('/user/settings')}>
+              <Ionicons name="settings" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <View style={styles.content}>
           <View style={styles.logoContainer}>
             <View style={styles.logoWrapper}>
               <Image source={require('../../assets/images/logo1.jpg')} style={styles.logoImage} resizeMode="cover" />
             </View>
-          </View>
-          
+            </View>
+
           <View style={styles.row}>
             <Button
               title="🏢 Daire Bilgileri"
@@ -51,31 +72,25 @@ export default function UserDashboard() {
               style={styles.gridButton}
             />
             <Button
-              title="💬 Mesajlar"
-              variant="secondary"
-              size="large"
-              fullWidth
-              onPress={() => handleNavigation('/user/chat')}
-              style={styles.gridButton}
-            />
-          </View>
-          <View style={styles.row}>
-            <Button
               title="📢 Duyurular"
-              variant="primary"
+              variant="secondary"
               size="large"
               fullWidth
               onPress={() => handleNavigation('/user/announcements/list')}
               style={styles.gridButton}
             />
+          </View>
+          <View style={styles.row}>
             <Button
-              title="☁️ Hava Durumu"
+              title="🏊‍♂️ Ortak Alanlar"
               variant="secondary"
               size="large"
               fullWidth
-              onPress={() => handleNavigation('/user/weather/forecast')}
+              onPress={() => handleNavigation('/user/common-areas')}
               style={styles.gridButton}
             />
+          </View>
+          <View style={styles.menuRow}>
           </View>
         </View>
       </LinearGradient>
@@ -86,62 +101,94 @@ export default function UserDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
   },
   gradient: {
     flex: 1,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    padding: 20,
+    paddingTop: 50,
+  },
+  headerPlaceholder: {
+    flex: 1,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
   content: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
+    padding: 20,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 30,
   },
   logoWrapper: {
     width: 120,
     height: 120,
     borderRadius: 60,
     overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.background.soft,
-    marginBottom: 8,
-  } as ViewStyle,
+    borderWidth: 3,
+    borderColor: '#fff',
+  },
   logoImage: {
-    width: 120,
-    height: 120,
-  } as ImageStyle,
-  gridContainer: {
     width: '100%',
-    maxWidth: 400,
-    gap: 16,
+    height: '100%',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 16,
-    marginBottom: 16,
+    marginBottom: 15,
   },
   gridButton: {
     flex: 1,
-    marginHorizontal: 0,
+    marginHorizontal: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: 10,
   },
-  menuItem: {
+  helpCenterButton: {
+    backgroundColor: theme.colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
+    justifyContent: 'center',
   },
-  menuIcon: {
-    marginRight: 12,
-  },
-  menuText: {
+  helpCenterButtonText: {
+    color: '#000',
     fontSize: 16,
     fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  menuButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#fff',
+    borderRadius: 5,
+  },
+  menuButtonText: {
+    marginLeft: 10,
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  weatherIcon: {
+    padding: 8,
   },
 }); 

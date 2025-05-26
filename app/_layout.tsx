@@ -1,63 +1,56 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+import React, { useEffect, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { router, Slot, usePathname } from 'expo-router';
+import { TouchableOpacity } from 'react-native';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../config/firebase';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsLoggedIn(!!user);
+    });
+    return unsubscribe;
+  }, []);
 
-  if (!loaded) {
-    return null;
-  }
+  // Giriş yapılmamışsa buton görünmesin
+  // Ayrıca yardım merkezi sayfasında, login sayfalarında ve ana sayfada tekrar buton gösterme
+  const showChatbot = isLoggedIn && pathname !== '/' && pathname !== '/user/help-center' && pathname !== '/admin/help-center' && pathname !== '/user/login' && pathname !== '/admin/login';
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="admin" />
-        <Stack.Screen name="user" />
-        <Stack.Screen name="admin/login" />
-        <Stack.Screen name="admin/register" />
-        <Stack.Screen name="admin/dashboard" />
-        <Stack.Screen name="admin/apartment/add" />
-        <Stack.Screen name="admin/apartment/list" />
-        <Stack.Screen name="admin/user/add" />
-        <Stack.Screen name="admin/user/list" />
-        <Stack.Screen name="admin/dues/add" />
-        <Stack.Screen name="admin/dues/list" />
-        <Stack.Screen name="admin/weather" />
-        <Stack.Screen name="admin/complaints/list" />
-        <Stack.Screen name="user/login" />
-        <Stack.Screen name="user/register" />
-        <Stack.Screen name="user/dashboard" />
-        <Stack.Screen name="user/apartment/index" />
-        <Stack.Screen name="user/apartment/edit" />
-        <Stack.Screen name="user/apartment/info" />
-        <Stack.Screen name="user/dues/payments" />
-        <Stack.Screen name="user/announcements/list" />
-        <Stack.Screen name="user/complaints/index" />
-        <Stack.Screen name="user/complaints/add" />
-        <Stack.Screen name="user/weather/forecast" />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <>
+      <Slot />
+      {showChatbot && (
+        <TouchableOpacity
+          style={{
+            position: 'absolute',
+            right: 24,
+            bottom: 32,
+            backgroundColor: '#000',
+            borderRadius: 32,
+            padding: 16,
+            elevation: 8,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            zIndex: 999,
+          }}
+          onPress={() => {
+            if (pathname.startsWith('/admin')) {
+              router.push('/admin/help-center' as any);
+            } else {
+              router.push('/user/help-center');
+            }
+          }}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="help-circle-outline" size={28} color="#fff" />
+        </TouchableOpacity>
+      )}
+    </>
   );
 }

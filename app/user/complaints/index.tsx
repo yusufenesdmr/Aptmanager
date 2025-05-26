@@ -229,7 +229,7 @@ export default function Complaints() {
                 onPress={() => handleViewDetails(complaint)}>
                 <View style={styles.complaintHeader}>
                   <View style={styles.complaintInfo}>
-                    <Text style={styles.complaintTitle}>{complaint.title}</Text>
+                  <Text style={styles.complaintTitle}>{complaint.title}</Text>
                     <View style={styles.userInfo}>
                       <Text style={styles.userEmail}>{complaint.userEmail}</Text>
                       <Text style={styles.userDetails}>
@@ -258,8 +258,8 @@ export default function Complaints() {
                     <Text style={styles.responseText}>{complaint.response}</Text>
                     <Text style={styles.responseDate}>
                       {complaint.responseDate?.toLocaleDateString('tr-TR')}
-                    </Text>
-                  </View>
+                </Text>
+              </View>
                 )}
               </TouchableOpacity>
             ))
