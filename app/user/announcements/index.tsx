@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +18,7 @@ export default function UserAnnouncementsList() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
@@ -42,15 +43,18 @@ export default function UserAnnouncementsList() {
           console.log('Duyurular başarıyla yüklendi:', announcementsList.length);
           setAnnouncements(announcementsList);
           setLoading(false);
+          setError(null);
         }, (error) => {
           console.error('Duyuru dinleme hatası:', error);
           setLoading(false);
+          setError('Duyurular yüklenirken bir hata oluştu.');
         });
 
         return () => unsubscribe();
       } catch (error) {
         console.error('Duyuru yükleme hatası:', error);
         setLoading(false);
+        setError('Duyurular yüklenirken bir hata oluştu.');
       }
     };
 
@@ -59,9 +63,7 @@ export default function UserAnnouncementsList() {
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    setLoading(true);
-    setRefreshing(false);
-    setLoading(false);
+    setTimeout(() => setRefreshing(false), 1000);
   }, []);
 
   const renderItem = ({ item }: { item: Announcement }) => (
@@ -89,23 +91,34 @@ export default function UserAnnouncementsList() {
             <Text style={styles.headerTitle}>Duyurular</Text>
           </View>
 
-          <FlatList
-            data={announcements}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.list}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-              />
-            }
-            ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Henüz duyuru bulunmuyor</Text>
-              </View>
-            }
-          />
+          {loading ? (
+            <View style={styles.centeredContainer}>
+              <ActivityIndicator size="large" color="#4c669f" />
+            </View>
+          ) : error ? (
+            <View style={styles.centeredContainer}>
+              <Ionicons name="alert-circle-outline" size={48} color="#ff4444" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : announcements.length === 0 ? (
+            <View style={styles.centeredContainer}>
+              <Ionicons name="notifications-off-outline" size={48} color="#4c669f" />
+              <Text style={styles.emptyText}>Henüz duyuru bulunmuyor.</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={announcements}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.list}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                />
+              }
+            />
+          )}
         </LinearGradient>
       </View>
     </SafeAreaView>
@@ -173,15 +186,22 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'right',
   },
-  emptyContainer: {
+  centeredContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
+  errorText: {
+    fontSize: 16,
+    color: '#ff4444',
+    textAlign: 'center',
+    marginTop: 10,
+  },
   emptyText: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
+    marginTop: 10,
   },
 }); 

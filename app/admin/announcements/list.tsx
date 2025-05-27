@@ -12,13 +12,14 @@ interface Announcement {
   id: string;
   title: string;
   content: string;
-  date: string;
+  date: any; // Firestore Timestamp type
   isImportant: boolean;
 }
 
 export default function AnnouncementList() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, 'announcements'), orderBy('date', 'desc'));
@@ -69,6 +70,13 @@ export default function AnnouncementList() {
     ]);
   };
 
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    // onSnapshot already handles fetching, just trigger loading state
+    // The state change in Firestore will cause onSnapshot to re-run and update data
+    setTimeout(() => setRefreshing(false), 1000); // Simulate loading for a bit
+  }, []);
+
   const renderItem = ({ item }: { item: Announcement }) => (
     <TouchableOpacity onPress={() => handleEdit(item.id)}>
       <View style={[
@@ -108,7 +116,7 @@ export default function AnnouncementList() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[theme.colors.primary, theme.colors.secondary]}
+        colors={[theme.colors.background.light, theme.colors.background.soft]}
         style={styles.gradient}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.logoContainer}>
@@ -229,7 +237,7 @@ const styles = StyleSheet.create({
   },
   announcementContent: {
     fontSize: 16,
-    color: theme.colors.text.light,
+    color: theme.colors.text.dark,
     marginBottom: 10,
   },
   announcementFooter: {
@@ -239,7 +247,7 @@ const styles = StyleSheet.create({
   },
   announcementDate: {
     fontSize: 14,
-    color: theme.colors.text.light,
+    color: theme.colors.text.dark,
     opacity: 0.7,
   },
   emptyContainer: {
@@ -247,9 +255,9 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   emptyText: {
-    color: theme.colors.text.light,
-    fontSize: 18,
-    opacity: 0.7,
+    color: theme.colors.text.dark,
+    fontSize: 16,
+    textAlign: 'center',
   },
   importantCard: {
     backgroundColor: theme.colors.background.soft,
@@ -267,9 +275,9 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   actionButton: {
-    padding: 8,
+    padding: 5,
   },
 }); 

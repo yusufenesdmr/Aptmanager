@@ -73,10 +73,20 @@ export default function UserDashboard() {
             />
             <Button
               title="📢 Duyurular"
+              variant="primary"
+              size="large"
+              fullWidth
+              onPress={() => handleNavigation('/user/announcements')}
+              style={styles.gridButton}
+            />
+          </View>
+          <View style={styles.row}>
+            <Button
+              title="📊 Anketler"
               variant="secondary"
               size="large"
               fullWidth
-              onPress={() => handleNavigation('/user/announcements/list')}
+              onPress={() => handleNavigation('/user/surveys')}
               style={styles.gridButton}
             />
           </View>
@@ -162,7 +172,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
+    },
   helpCenterButtonText: {
     color: '#000',
     fontSize: 16,

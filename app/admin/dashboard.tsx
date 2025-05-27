@@ -111,6 +111,14 @@ export default function AdminDashboard() {
                 onPress={() => handleNavigation('/admin/common-areas/list')}
                 style={styles.gridButton}
               />
+              <Button
+                title="📊 Anket Yönetimi"
+                variant="secondary"
+                size="large"
+                fullWidth
+                onPress={() => handleNavigation('/admin/surveys/list')}
+                style={styles.gridButton}
+              />
             </View>
           </View>
         </View>

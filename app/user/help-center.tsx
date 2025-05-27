@@ -65,7 +65,7 @@ function getBotResponse(input: string, dues?: any[]): Message {
       from: 'bot' as const,
       text: 'Duyuruları buradan görebilirsiniz.',
       actions: [
-        { label: 'Duyurular', route: '/user/announcements/list' },
+        { label: 'Duyurular', route: '/user/announcements' },
       ],
     };
   }

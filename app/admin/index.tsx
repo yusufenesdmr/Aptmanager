@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
-type AdminRoute = '/admin/chat' | '/admin/apartments' | '/admin/users' | '/admin/announcements' | '/admin/weather';
+type AdminRoute = '/admin/chat' | '/admin/apartments/list' | '/admin/users' | '/admin/announcements/list' | '/admin/weather';
 
 interface MenuItem {
   title: string;
@@ -109,7 +109,7 @@ const AdminIndex: React.FC = () => {
       description: 'Daire yönetimi',
       icon: 'home',
       color: '#2196F3',
-      route: '/admin/apartments',
+      route: '/admin/apartments/list',
     },
     {
       title: 'Kullanıcılar',
@@ -123,7 +123,7 @@ const AdminIndex: React.FC = () => {
       description: 'Duyuru yönetimi',
       icon: 'megaphone',
       color: '#9C27B0',
-      route: '/admin/announcements',
+      route: '/admin/announcements/list',
     },
   ];
 
