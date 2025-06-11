@@ -3,7 +3,7 @@ name: Firebase Deploy
 on:
   push:
     branches:
-      - master  # veya senin ana branşın neyse onu yaz
+      - master  # veya ana branch neyse onu yaz
 
 jobs:
   deploy:
@@ -15,7 +15,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '16'
+        node-version: '20'
 
     - name: Install Firebase CLI
       run: npm install -g firebase-tools
