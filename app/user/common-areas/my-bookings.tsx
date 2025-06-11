@@ -15,7 +15,8 @@ interface Booking {
   date: string;
   startTime: string;
   endTime: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'approved' | 'rejected' | 'pending';
+  userId: string;
 }
 
 export default function MyBookings() {
@@ -28,7 +29,7 @@ export default function MyBookings() {
       const user = auth.currentUser;
       if (!user) {
         Alert.alert('Hata', 'Lütfen giriş yapın.');
-        router.push('/login');
+        router.push('/(auth)/login');
         return;
       }
 
@@ -50,7 +51,11 @@ export default function MyBookings() {
             id: doc.id,
             areaId: area.id,
             areaName: area.name,
-            ...doc.data()
+            date: doc.data().date,
+            startTime: doc.data().startTime,
+            endTime: doc.data().endTime,
+            status: doc.data().status || 'pending',
+            userId: doc.data().userId,
           }))
           .filter(booking => booking.userId === user.uid);
         allBookings.push(...areaBookings);
@@ -269,17 +274,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   areaName: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
+    flex: 1,
   },
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 15,
+    marginLeft: 10,
   },
   statusText: {
     color: '#fff',
@@ -287,6 +294,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   bookingDetails: {
+    backgroundColor: '#f5f5f5',
+    padding: 15,
+    borderRadius: 8,
     marginBottom: 15,
   },
   detailRow: {
@@ -295,7 +305,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   detailText: {
-    marginLeft: 8,
+    marginLeft: 10,
     fontSize: 16,
     color: '#666',
   },
@@ -305,12 +315,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 12,
-    borderRadius: 5,
+    borderRadius: 8,
   },
   cancelButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
     marginLeft: 8,
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 }); 

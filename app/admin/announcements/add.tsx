@@ -42,7 +42,8 @@ export default function AddAnnouncement() {
         title: announcement.title.trim(),
         content: announcement.content.trim(),
         isImportant: announcement.isImportant,
-        date: serverTimestamp()
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
 
       await addDoc(announcementsRef, newAnnouncement);

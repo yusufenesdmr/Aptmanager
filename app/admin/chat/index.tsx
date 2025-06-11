@@ -446,7 +446,6 @@ export default function AdminChat() {
           keyExtractor={(item) => item.id}
           style={styles.messagesList}
           contentContainerStyle={styles.messagesListContent}
-          inverted
         />
 
         <KeyboardAvoidingView

@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '@/constants/theme';
-import { collection, getDocs, query, where, deleteDoc, doc, getDoc, DocumentData } from 'firebase/firestore';
+import { collection, getDocs, query, where, deleteDoc, doc, getDoc, DocumentData, updateDoc } from 'firebase/firestore';
 import { db } from '../../../../config/firebase';
 
 interface Booking {
@@ -12,7 +12,8 @@ interface Booking {
   date: string;
   timeSlot: string;
   userId: string;
-  userInfo?: {
+  status: 'approved' | 'rejected' | 'pending';
+  userInfo: {
     name: string;
     phone: string;
     email: string;
@@ -72,6 +73,7 @@ export default function AreaBookings() {
               date: bookingData.date,
               timeSlot: `${bookingData.startTime} - ${bookingData.endTime}`,
               userId: bookingData.userId,
+              status: 'pending',
               userInfo: {
                 name: 'Bilinmeyen Kullanıcı',
                 phone: '-',
@@ -110,6 +112,7 @@ export default function AreaBookings() {
             date: bookingData.date,
             timeSlot: `${bookingData.startTime} - ${bookingData.endTime}`,
             userId: bookingData.userId,
+            status: bookingData.status,
             userInfo: {
               name: userData?.name || 'Bilinmeyen Kullanıcı',
               phone: userData?.phone || '-',
@@ -144,8 +147,20 @@ export default function AreaBookings() {
           style: 'destructive',
           onPress: async () => {
             try {
-              // Doğru koleksiyon yolunu kullan
+              // Rezervasyonu sil
               await deleteDoc(doc(db, 'commonAreas', id as string, 'bookings', bookingId));
+
+              // Alanın mevcut rezervasyon sayısını güncelle
+              const areaRef = doc(db, 'commonAreas', id as string);
+              const areaDoc = await getDoc(areaRef);
+              if (areaDoc.exists()) {
+                const areaData = areaDoc.data();
+                await updateDoc(areaRef, {
+                  currentBookings: Math.max(0, (areaData.currentBookings || 0) - 1),
+                });
+              }
+
+              // Rezervasyon listesini güncelle
               setBookings(bookings.filter(booking => booking.id !== bookingId));
               Alert.alert('Başarılı', 'Rezervasyon başarıyla iptal edildi.');
             } catch (error) {
@@ -156,6 +171,28 @@ export default function AreaBookings() {
         },
       ]
     );
+  };
+
+  const handleUpdateStatus = async (bookingId: string, newStatus: 'approved' | 'rejected' | 'pending') => {
+    try {
+      const bookingRef = doc(db, 'commonAreas', id as string, 'bookings', bookingId);
+      await updateDoc(bookingRef, {
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      });
+
+      // Rezervasyon listesini güncelle
+      setBookings(bookings.map(booking => 
+        booking.id === bookingId 
+          ? { ...booking, status: newStatus }
+          : booking
+      ));
+
+      Alert.alert('Başarılı', 'Rezervasyon durumu güncellendi.');
+    } catch (error) {
+      console.error('Rezervasyon durumu güncellenirken hata:', error);
+      Alert.alert('Hata', 'Rezervasyon durumu güncellenirken bir sorun oluştu.');
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -222,13 +259,31 @@ export default function AreaBookings() {
                   <Text style={styles.userDetail}>Telefon: {booking.userInfo?.phone}</Text>
                   <Text style={styles.userDetail}>E-posta: {booking.userInfo?.email}</Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDelete(booking.id)}
-                >
-                  <Ionicons name="trash-outline" size={20} color="#fff" />
-                  <Text style={styles.deleteButtonText}>İptal Et</Text>
-                </TouchableOpacity>
+
+                <View style={styles.actionsContainer}>
+                  <View style={styles.statusButtons}>
+                    <TouchableOpacity
+                      style={[styles.statusButton, booking.status === 'approved' && styles.activeStatusButton]}
+                      onPress={() => handleUpdateStatus(booking.id, 'approved')}>
+                      <Text style={[styles.statusButtonText, booking.status === 'approved' && styles.activeStatusButtonText]}>
+                        Onayla
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.statusButton, booking.status === 'rejected' && styles.rejectedStatusButton]}
+                      onPress={() => handleUpdateStatus(booking.id, 'rejected')}>
+                      <Text style={[styles.statusButtonText, booking.status === 'rejected' && styles.rejectedStatusButtonText]}>
+                        Reddet
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDelete(booking.id)}>
+                    <Ionicons name="trash-outline" size={20} color="#fff" />
+                    <Text style={styles.deleteButtonText}>İptal Et</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             ))
           )}
@@ -324,18 +379,56 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 3,
   },
+  actionsContainer: {
+    marginTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    paddingTop: 15,
+  },
+  statusButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  statusButton: {
+    flex: 1,
+    padding: 8,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginHorizontal: 5,
+    alignItems: 'center',
+  },
+  activeStatusButton: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  rejectedStatusButton: {
+    backgroundColor: '#f44336',
+    borderColor: '#f44336',
+  },
+  statusButtonText: {
+    color: '#666',
+    fontSize: 14,
+  },
+  activeStatusButtonText: {
+    color: '#fff',
+  },
+  rejectedStatusButtonText: {
+    color: '#fff',
+  },
   deleteButton: {
+    backgroundColor: '#f44336',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ff4444',
     padding: 10,
     borderRadius: 5,
-    marginTop: 10,
+    marginTop: 5,
   },
   deleteButtonText: {
     color: '#fff',
     marginLeft: 5,
-    fontWeight: 'bold',
+    fontSize: 14,
   },
 }); 

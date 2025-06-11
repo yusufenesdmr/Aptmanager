@@ -5,7 +5,8 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '@/constants/theme';
 import { db } from '../../../config/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 interface CommonArea {
   id: string;
@@ -16,29 +17,62 @@ interface CommonArea {
   currentBookings: number;
 }
 
+interface UserBooking {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: 'approved' | 'rejected' | 'pending';
+  userId: string;
+}
+
 export default function UserCommonAreas() {
   const [areas, setAreas] = useState<CommonArea[]>([]);
+  const [userBookings, setUserBookings] = useState<{ [key: string]: UserBooking[] }>({});
   const [loading, setLoading] = useState(true);
 
-  const fetchAreas = async () => {
-    try {
-      const areasRef = collection(db, 'commonAreas');
-      const snapshot = await getDocs(areasRef);
+  useEffect(() => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    const areasRef = collection(db, 'commonAreas');
+    const unsubscribe = onSnapshot(areasRef, async (snapshot) => {
       const areasList = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as CommonArea[];
       setAreas(areasList.filter(area => area.isActive));
-    } catch (error) {
-      console.error('Ortak alanlar yüklenirken hata:', error);
-      Alert.alert('Hata', 'Ortak alanlar yüklenirken bir sorun oluştu.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    fetchAreas();
+      // Her alan için kullanıcının rezervasyonlarını al
+      const bookings: { [key: string]: UserBooking[] } = {};
+      for (const area of areasList) {
+        const bookingsRef = collection(db, 'commonAreas', area.id, 'bookings');
+        const bookingsSnapshot = await getDocs(bookingsRef);
+        const areaBookings = bookingsSnapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            date: doc.data().date,
+            startTime: doc.data().startTime,
+            endTime: doc.data().endTime,
+            status: doc.data().status || 'pending',
+            userId: doc.data().userId,
+          }))
+          .filter(booking => booking.userId === user.uid);
+        bookings[area.id] = areaBookings;
+      }
+      setUserBookings(bookings);
+      setLoading(false);
+    }, (error) => {
+      console.error('Ortak alanlar dinlenirken hata:', error);
+      Alert.alert('Hata', 'Ortak alanlar yüklenirken bir sorun oluştu.');
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const getTypeIcon = (type: string) => {
@@ -54,6 +88,28 @@ export default function UserCommonAreas() {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return '#4CAF50';
+      case 'rejected':
+        return '#f44336';
+      default:
+        return '#FFA000';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'Onaylandı';
+      case 'rejected':
+        return 'Reddedildi';
+      default:
+        return 'Beklemede';
+    }
+  };
+
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -66,6 +122,11 @@ export default function UserCommonAreas() {
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Ortak Alanlar</Text>
+          <TouchableOpacity
+            style={styles.myBookingsButton}
+            onPress={() => router.push('/user/common-areas/my-bookings')}>
+            <Ionicons name="calendar" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content}>
@@ -73,7 +134,7 @@ export default function UserCommonAreas() {
             <ActivityIndicator size="large" color="#fff" style={styles.loader} />
           ) : areas.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Aktif ortak alan bulunmuyor</Text>
+              <Text style={styles.emptyText}>Henüz aktif ortak alan bulunmuyor</Text>
             </View>
           ) : (
             areas.map((area) => (
@@ -112,6 +173,33 @@ export default function UserCommonAreas() {
                     </Text>
                   </View>
                 </View>
+
+                {userBookings[area.id]?.length > 0 && (
+                  <View style={styles.bookingsContainer}>
+                    <Text style={styles.bookingsTitle}>Rezervasyonlarım:</Text>
+                    {userBookings[area.id].map((booking) => (
+                      <View key={booking.id} style={styles.bookingItem}>
+                        <View style={styles.bookingInfo}>
+                          <Text style={styles.bookingDate}>
+                            {new Date(booking.date).toLocaleDateString('tr-TR')}
+                          </Text>
+                          <Text style={styles.bookingTime}>
+                            {booking.startTime} - {booking.endTime}
+                          </Text>
+                        </View>
+                        <View
+                          style={[
+                            styles.statusBadge,
+                            { backgroundColor: getStatusColor(booking.status) },
+                          ]}>
+                          <Text style={styles.statusText}>
+                            {getStatusText(booking.status)}
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
 
                 <View style={styles.bookButton}>
                   <Text style={styles.bookButtonText}>Rezervasyon Yap</Text>
@@ -238,5 +326,51 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginRight: 8,
+  },
+  myBookingsButton: {
+    marginLeft: 'auto',
+  },
+  bookingsContainer: {
+    marginTop: 15,
+    padding: 15,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+  },
+  bookingsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  bookingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  bookingInfo: {
+    flex: 1,
+  },
+  bookingDate: {
+    fontSize: 14,
+    color: '#333',
+    marginBottom: 4,
+  },
+  bookingTime: {
+    fontSize: 14,
+    color: '#666',
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 10,
+  },
+  statusText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 }); 

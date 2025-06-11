@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, query, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 import { db } from '../../../config/firebase';
+import { theme } from '@/constants/theme';
 
 interface Announcement {
   id: string;
@@ -12,6 +13,7 @@ interface Announcement {
   content: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  isImportant: boolean;
 }
 
 export default function UserAnnouncementsList() {
@@ -67,10 +69,29 @@ export default function UserAnnouncementsList() {
   }, []);
 
   const renderItem = ({ item }: { item: Announcement }) => (
-    <View style={styles.announcementItem}>
-      <Text style={styles.announcementTitle}>{item.title}</Text>
-      <Text style={styles.announcementContent}>{item.content}</Text>
-      <Text style={styles.announcementDate}>
+    <View style={[
+      styles.announcementItem,
+      item.isImportant && styles.importantAnnouncement
+    ]}>
+      <View style={styles.announcementHeader}>
+        <Text style={[
+          styles.announcementTitle,
+          item.isImportant && styles.importantTitle
+        ]}>{item.title}</Text>
+        {item.isImportant && (
+          <View style={styles.importantBadge}>
+            <Text style={styles.importantText}>Önemli</Text>
+          </View>
+        )}
+      </View>
+      <Text style={[
+        styles.announcementContent,
+        item.isImportant && styles.importantContent
+      ]}>{item.content}</Text>
+      <Text style={[
+        styles.announcementDate,
+        item.isImportant && styles.importantDate
+      ]}>
         {item.createdAt?.toDate().toLocaleDateString('tr-TR')}
       </Text>
     </View>
@@ -169,11 +190,37 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
   },
+  importantAnnouncement: {
+    backgroundColor: '#FFF3E0',
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF9800',
+  },
+  announcementHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   announcementTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 10,
+    flex: 1,
+    marginRight: 10,
+  },
+  importantTitle: {
+    color: '#E65100',
+  },
+  importantBadge: {
+    backgroundColor: '#FF9800',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  importantText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   announcementContent: {
     fontSize: 16,
@@ -181,10 +228,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     lineHeight: 24,
   },
+  importantContent: {
+    color: '#333',
+  },
   announcementDate: {
     fontSize: 14,
     color: '#999',
     textAlign: 'right',
+  },
+  importantDate: {
+    color: '#FF9800',
   },
   centeredContainer: {
     flex: 1,

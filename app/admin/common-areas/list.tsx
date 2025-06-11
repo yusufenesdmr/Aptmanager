@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '@/constants/theme';
 import { db } from '../../../config/firebase';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, getDoc, getDocs, DocumentData } from 'firebase/firestore';
 
 interface CommonArea {
   id: string;
@@ -20,22 +20,23 @@ export default function CommonAreasList() {
   const [areas, setAreas] = useState<CommonArea[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchAreas = async () => {
-    try {
-      const areasRef = collection(db, 'commonAreas');
-      const snapshot = await getDocs(areasRef);
+  useEffect(() => {
+    const areasRef = collection(db, 'commonAreas');
+    const unsubscribe = onSnapshot(areasRef, (snapshot) => {
       const areasList = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as CommonArea[];
       setAreas(areasList);
-    } catch (error) {
-      console.error('Ortak alanlar yüklenirken hata:', error);
-      Alert.alert('Hata', 'Ortak alanlar yüklenirken bir sorun oluştu.');
-    } finally {
       setLoading(false);
-    }
-  };
+    }, (error) => {
+      console.error('Ortak alanlar dinlenirken hata:', error);
+      Alert.alert('Hata', 'Ortak alanlar yüklenirken bir sorun oluştu.');
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleToggleStatus = async (areaId: string, currentStatus: boolean) => {
     try {
@@ -43,16 +44,43 @@ export default function CommonAreasList() {
       await updateDoc(areaRef, {
         isActive: !currentStatus
       });
-      await fetchAreas();
     } catch (error) {
       console.error('Durum güncellenirken hata:', error);
       Alert.alert('Hata', 'Durum güncellenirken bir sorun oluştu.');
     }
   };
 
-  useEffect(() => {
-    fetchAreas();
-  }, []);
+  const handleDelete = async (areaId: string) => {
+    Alert.alert(
+      'Ortak Alan Silme',
+      'Bu ortak alanı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm rezervasyonlar silinecektir.',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        {
+          text: 'Sil',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Önce rezervasyonları sil
+              const bookingsRef = collection(db, 'commonAreas', areaId, 'bookings');
+              const bookingsSnapshot = await getDocs(bookingsRef);
+              const deletePromises = bookingsSnapshot.docs.map((doc: DocumentData) => 
+                deleteDoc(doc.ref)
+              );
+              await Promise.all(deletePromises);
+
+              // Sonra ortak alanı sil
+              await deleteDoc(doc(db, 'commonAreas', areaId));
+              Alert.alert('Başarılı', 'Ortak alan başarıyla silindi.');
+            } catch (error) {
+              console.error('Ortak alan silinirken hata:', error);
+              Alert.alert('Hata', 'Ortak alan silinirken bir sorun oluştu.');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -110,16 +138,28 @@ export default function CommonAreasList() {
                     />
                     <Text style={styles.areaName}>{area.name}</Text>
                   </View>
-                  <TouchableOpacity
-                    style={[
-                      styles.statusButton,
-                      area.isActive ? styles.activeButton : styles.inactiveButton,
-                    ]}
-                    onPress={() => handleToggleStatus(area.id, area.isActive)}>
-                    <Text style={styles.statusButtonText}>
-                      {area.isActive ? 'Aktif' : 'Pasif'}
-                    </Text>
-                  </TouchableOpacity>
+                  <View style={styles.headerActions}>
+                    <TouchableOpacity
+                      style={[
+                        styles.statusButton,
+                        area.isActive ? styles.activeButton : styles.inactiveButton,
+                      ]}
+                      onPress={() => handleToggleStatus(area.id, area.isActive)}>
+                      <Text style={styles.statusButtonText}>
+                        {area.isActive ? 'Aktif' : 'Pasif'}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() => router.push({ pathname: "/admin/common-areas/edit/[id]", params: { id: area.id } })}>
+                      <Ionicons name="create-outline" size={20} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => handleDelete(area.id)}>
+                      <Ionicons name="trash-outline" size={20} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 <View style={styles.areaDetails}>
@@ -234,16 +274,33 @@ const styles = StyleSheet.create({
     color: '#333',
     marginLeft: 10,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  editButton: {
+    backgroundColor: '#2196F3',
+    padding: 8,
+    borderRadius: 5,
+    marginLeft: 8,
+  },
+  deleteButton: {
+    backgroundColor: '#f44336',
+    padding: 8,
+    borderRadius: 5,
+    marginLeft: 8,
+  },
   statusButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    borderRadius: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 5,
+    marginRight: 8,
   },
   activeButton: {
     backgroundColor: '#4CAF50',
   },
   inactiveButton: {
-    backgroundColor: '#f44336',
+    backgroundColor: '#9E9E9E',
   },
   statusButtonText: {
     color: '#fff',

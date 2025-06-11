@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert,
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../../config/firebase';
 import { theme } from '@/constants/theme';
 import { Button } from '@/components/ui/Button';
@@ -68,7 +68,7 @@ export default function EditAnnouncement() {
         title: announcement.title.trim(),
         content: announcement.content.trim(),
         isImportant: announcement.isImportant,
-        updatedAt: new Date(),
+        updatedAt: serverTimestamp()
       });
       
       Alert.alert('Başarılı', 'Duyuru başarıyla güncellendi.');

@@ -94,6 +94,15 @@ function getBotResponse(input: string, dues?: any[]): Message {
   };
 }
 
+const predefinedResponses: { [key: string]: string } = {
+  "merhaba": "Merhaba! Size nasıl yardımcı olabilirim?",
+  "aidat": "Aidat ödemeleri hakkında bilgi almak için yönetici panelinden 'Aidat Yönetimi' bölümünü kullanabilirsiniz.",
+  "duyuru": "Duyuruları görüntülemek için ana sayfadaki 'Duyurular' bölümünü ziyaret edebilirsiniz.",
+  "şikayet": "Şikayetlerinizi yönetici paneline iletebilirsiniz. Lütfen detaylı açıklama yapın.",
+  "yardım": "Size yardımcı olabileceğim konular:\n- Aidat ödemeleri\n- Duyurular\n- Şikayetler\n- Genel bilgiler\n\nHangi konuda yardıma ihtiyacınız var?",
+  "teşekkür": "Rica ederim! Başka bir konuda yardıma ihtiyacınız var mı?",
+};
+
 export default function HelpCenter() {
   const [messages, setMessages] = useState<Message[]>([BOT_INTRO]);
   const [input, setInput] = useState('');
@@ -142,16 +151,19 @@ export default function HelpCenter() {
         setLoading(false);
         return;
       }
-      // Diğer tüm mesajlar için Gemini API'ye gönder
-      const res = await fetch('http://localhost:3000/api/ai-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
-      });
-      const data = await res.json();
-      setMessages((prev) => [...prev, { from: 'bot', text: data.text }]);
+
+      // Önceden tanımlanmış cevapları kontrol et
+      let response = "Üzgünüm, bu konuda size yardımcı olamıyorum. Lütfen yönetici panelinden ilgili bölüme bakın.";
+      for (const [key, value] of Object.entries(predefinedResponses)) {
+        if (lower.includes(key)) {
+          response = value;
+          break;
+        }
+      }
+      setMessages((prev) => [...prev, { from: 'bot', text: response }]);
     } catch (e) {
-      setMessages((prev) => [...prev, { from: 'bot', text: 'AI cevabı alınamadı.' }]);
+      console.error('Bot cevabı alınırken hata:', e);
+      setMessages((prev) => [...prev, { from: 'bot', text: 'Yardım alınırken bir sorun oluştu.' }]);
     } finally {
       setLoading(false);
     }

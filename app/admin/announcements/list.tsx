@@ -22,12 +22,12 @@ export default function AnnouncementList() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'announcements'), orderBy('date', 'desc'));
+    const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-        date: doc.data().date?.toDate().toLocaleDateString('tr-TR') || '',
+        date: doc.data().createdAt?.toDate().toLocaleDateString('tr-TR') || '',
       })) as Announcement[];
       setAnnouncements(data);
       setLoading(false);

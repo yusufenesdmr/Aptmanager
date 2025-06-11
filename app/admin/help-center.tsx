@@ -28,6 +28,15 @@ const BOT_INTRO = {
   ],
 };
 
+const predefinedResponses: { [key: string]: string } = {
+  "merhaba": "Merhaba! Size nasıl yardımcı olabilirim?",
+  "aidat": "Aidat yönetimi için 'Aidat Yönetimi' bölümünü kullanabilirsiniz. Buradan aidat ekleyebilir, düzenleyebilir ve ödemeleri takip edebilirsiniz.",
+  "duyuru": "Duyuru yönetimi için 'Duyurular' bölümünü kullanabilirsiniz. Buradan yeni duyuru ekleyebilir ve mevcut duyuruları düzenleyebilirsiniz.",
+  "şikayet": "Şikayetleri görüntülemek ve yönetmek için 'Şikayetler' bölümünü kullanabilirsiniz.",
+  "yardım": "Size yardımcı olabileceğim konular:\n- Aidat Yönetimi\n- Duyuru Yönetimi\n- Şikayet Yönetimi\n- Kullanıcı Yönetimi\n\nHangi konuda yardıma ihtiyacınız var?",
+  "teşekkür": "Rica ederim! Başka bir konuda yardıma ihtiyacınız var mı?",
+};
+
 function getBotResponse(input: string, dues?: any[]): Message {
   const lower = input.toLowerCase();
 
@@ -142,25 +151,18 @@ export default function AdminHelpCenter() {
     setLoading(true);
 
     try {
-      // Send to Gemini API for general queries
-      const res = await fetch('http://localhost:3000/api/ai-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
-      });
-      const data = await res.json();
-      // After getting AI response, check if it's a general query or admin specific
-      const botMsg = getBotResponse(input);
-
-      // If getBotResponse returns a specific admin action, use that instead of AI response
-       if (botMsg.actions || botMsg.text !== BOT_INTRO.text) {
-         setMessages((prev) => [...prev, botMsg]);
-       } else {
-         setMessages((prev) => [...prev, { from: 'bot', text: data.text }]);
-       }
-
+      const lower = input.toLowerCase();
+      // Önceden tanımlanmış cevapları kontrol et
+      let response = "Üzgünüm, bu konuda size yardımcı olamıyorum. Lütfen ilgili bölümden işlem yapın.";
+      for (const [key, value] of Object.entries(predefinedResponses)) {
+        if (lower.includes(key)) {
+          response = value;
+          break;
+        }
+      }
+      setMessages((prev) => [...prev, { from: 'bot', text: response }]);
     } catch (e) {
-      console.error('AI veya Bot cevabı alınırken hata:', e);
+      console.error('Bot cevabı alınırken hata:', e);
       setMessages((prev) => [...prev, { from: 'bot', text: 'Yardım alınırken bir sorun oluştu.' }]);
     } finally {
       setLoading(false);
